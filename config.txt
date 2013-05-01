@@ -1,0 +1,26 @@
+[facts]
+[0]After coffee beans are decaffeinated, coffee manufacturers sell the caffeine to soft drink makers and pharmaceutical companies.
+[1]The average U.S. worker spends $1,092 on coffee each year.
+[2]Starbucks is named for Captain Ahab’s first mate. The founders had considered naming it Pequod's, after Ahab’s ship.
+[3]Chock Full O'Nuts coffee does not contain nuts. It's named for a chain of nut stores the founder converted into coffee shops.
+[4]According to legend, Honore de Balzac drank 50 cups of coffee a day to fuel his writing
+
+[admin]
+[0]chorlick:1234
+
+[motd]
+Hey im coffeebot thanks for taking the time to message me. For a list of commands just type 'help'
+
+[help]
+general commands :
+help - receieve this information
+fact - receive a random coffee fact
+admin - request admin status
+quote - receive quote of the day
+ 
+admin commands:
+user-add - add admin user
+user-reset - reset user password
+fact-add - add fact to cycle
+fact-remove - remove fact from cycle
+
