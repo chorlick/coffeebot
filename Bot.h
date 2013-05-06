@@ -11,12 +11,14 @@
 #include <gloox/chatstatehandler.h>
 #include <gloox/chatstatefilter.h>
 #include <gloox/connectionlistener.h>
+#include <libconfig.h++>
 
 #include <pthread.h>
 #include <string>
 #include <vector>
 using namespace gloox;
 using namespace std;
+using namespace libconfig;
 
 struct Admin {
     string username;

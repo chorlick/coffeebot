@@ -1,22 +1,26 @@
-[facts]
-After coffee beans are decaffeinated, coffee manufacturers sell the caffeine to soft drink makers and pharmaceutical companies.
-The average U.S. worker spends $1,092 on coffee each year.
-Starbucks is named for Captain Ahab’s first mate. The founders had considered naming it Pequod's, after Ahab’s ship.
-Chock Full O'Nuts coffee does not contain nuts. It's named for a chain of nut stores the founder converted into coffee shops.
-According to legend, Honore de Balzac drank 50 cups of coffee a day to fuel his writing
+
+#facts for the coffeebot
+facts= [
+    "After coffee beans are decaffeinated, coffee manufacturers sell the caffeine to soft drink makers and pharmaceutical companies.",
+    "The average U.S. worker spends $1,092 on coffee each year.",
+    "Starbucks is named for Captain Ahab’s first mate. The founders had considered naming it Pequod's, after Ahab’s ship.",
+    "Chock Full O'Nuts coffee does not contain nuts. It's named for a chain of nut stores the founder converted into coffee shops.",
+    "According to legend, Honore de Balzac drank 50 cups of coffee a day to fuel his writing"
+    ];
+
+#group of admins
+admin: {
+    admin_0 : {username= "chorlick";
+                password = "1234";
+            };
+};
 
 
-[admin]
-chorlick:1234
+wotd = "";
+qotd = "Peace begins with a smile.
+	-Mother Teresa";
 
-[wotd]
-
-[qotd]
-
-[motd]
-Hey im coffeebot thanks for taking the time to message me. For a list of commands just type 'help'
-
-[help]
+help = "
 general commands :
 help        - receieve this information
 fact        - receive a random coffee fact
@@ -32,9 +36,11 @@ user-reset  - reset user password
 fact-add    - add fact to cycle
 fact-remove - remove fact from cycle
 reload      - reload the configuration file
+";
 
-[creds]
-chris.horlick@fis-cal.com:XXXXX
+creds = {
+    username = "chris.horlick@fis-cal.com";
+    password = "XXXXX";
+};
 
-[brew]
-5 4 3 113 14 47 59 chorlick
+brew = "5 4 3 113 14 47 59 chorlick";

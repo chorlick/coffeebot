@@ -20,7 +20,7 @@
               
                 if(strstr( $line, "[qotd]")) {
                     printf("Found context\n");
-                    printf("Adding : %s" , $buffer);
+                    printf("Adding : %s\n" , $buffer);
                     fprintf($pfile,"%s", $buffer);
                 }else {
                         //do nothing

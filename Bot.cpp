@@ -12,13 +12,13 @@
 #include <string.h> 
 #include <stdlib.h>
 #include <stdio.h>
+#include <libconfig.h++>
 
 using namespace std;
 using namespace gloox;
-
+using namespace libconfig;
 
 Bot::Bot() {
-
     srand(time(NULL));
     connections = 0;
     parseConfigFile();
@@ -45,7 +45,7 @@ Bot::Bot(const Bot & b) {
 void Bot::debug(int debug, const char * fmt, ...) {
     char buffer[256];
 
-
+    Config cfg;
     if(debug == Warning) {
         snprintf(buffer, 256, "[Bot.cpp][warning] - ");
     }else if(debug == Notice){
@@ -69,117 +69,20 @@ Bot::~Bot() {
 }
 
 bool Bot::parseConfigFile() {
-    int i;
-    char c;
-    char context[64];
-    char buffer[512];
-    char * pch;
-    char * colon;    
-    int icolon;
-    debug(Notice, "Starting to parse config file");
-    i = 0;
-    memset(buffer, 0, 512);
-    memset(context,0, 64);
-    FILE * pfile = fopen("./config.txt", "r");
-    if(pfile) {
-        while(!feof(pfile)){
-            c = fgetc(pfile);
-            if(c == '\n') {
-
-                if( strlen(buffer) == 0) {
-                    continue;
-                }            
-
-                if(buffer[0] == '[' && buffer[i - 1] == ']') {
-                    snprintf(context, strlen(buffer) - 1, "%s", buffer +1 );
-                    debug(Debug, "Found a context %s", context);
-                }else if(strcmp(context, "facts") == 0){
-                    facts.push_back(buffer);   
-                }else if(strcmp(context, "motd") == 0) {
-                    buffer[i] = c;
-                    motd += buffer;
-                }else if(strcmp(context, "help" ) == 0) {
-                    buffer[i] = c;
-                    help += buffer;
-                }else if(strcmp(context, "admin") == 0 ) {
-                    struct Admin  * t = new struct Admin;
-                    colon = strstr(buffer, ":");
-                    t->username.resize(512);
-                    icolon = 0;
-                    while(buffer[icolon] != ':') {
-                        t->username[icolon] = buffer[icolon];
-                        icolon++;
-                    }
-                    t->username.resize(icolon + 1);
-                    t->password.resize(512);
-                    icolon++;
-                    snprintf( (char *) &t->password[0], 512, "%s", buffer + icolon);
-                    admins.push_back(t);
-                }else if(strcmp(context, "creds") == 0 ) {
-                    colon = strstr(buffer, ":");
-                    username.resize(512);
-                    icolon = 0;
-                    while(buffer[icolon] != ':') {
-                        username[icolon] = buffer[icolon];
-                        icolon++;
-                    }
-                    username.resize(icolon + 1);
-                    password.resize(512);
-                    icolon++;
-                    snprintf( (char *) &password[0], 512, "%s", buffer + icolon);
-
-                }else if(strcmp(context, "brew") == 0 ) {
-                    pch = strtok (buffer," ");
-                    brew_time.tm_wday = atoi(pch);
-
-                    pch = strtok (NULL, " ");
-                    brew_time.tm_year = atoi(pch);
-
-                    pch = strtok (NULL, " ");
-                    brew_time.tm_mon = atoi(pch);
-
-
-                    pch = strtok (NULL, " ");
-                    brew_time.tm_mday = atoi(pch);
-
-
-                    pch = strtok (NULL, " ");
-                    brew_time.tm_hour = atoi(pch);
-
-
-                    pch = strtok (NULL, " ");
-                    brew_time.tm_min = atoi(pch);
-
-
-                    pch = strtok (NULL, " ");
-                    brew_time.tm_sec = atoi(pch);
-
-                    pch = strtok (NULL, " ");
-                    snprintf(brew_user,32, "%s", pch);
-
-                    makeTime(brew_time, buffer, 512);
-                    debug(Notice, "Read last brew time as %s", buffer);
-                }
-                i = 0;
-                memset(buffer, 0, 512);
-                continue;
-            }else if(c == '[') {
-                debug(Debug, "Parsing context header");
-                memset(context, 0, 64);
-            }
-
-            buffer[i++] = c;
-
-        }
-        debug(Notice, "Successful parse file");
-        fclose(pfile);
-        return true;
-    }else{
-        debug(Warning, "No config file found");
-        return false;
+    Config cfg;
+    try {
+        cfg.readFile("./config.txt");
+    }catch (const FileIOException &t) {
+        debug(Critical, "Error reading file");
+        throw;
+    }catch (const ParseException  &p) {
+        debug(Critical, "Unable to parse config file %s at : %s ~ %s", p.getFile(), p.getLine(), p.getError() );
+        throw;
     }
 
+    debug(Notice, "Successful parse");
 }
+
 
 
 int Bot::makeTime(struct tm t, char* buffer, int size) {
