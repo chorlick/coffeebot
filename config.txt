@@ -1,4 +1,27 @@
-facts = [ "After coffee beans are decaffeinated, coffee manufacturers sell the caffeine to soft drink makers and pharmaceutical companies.", "The average U.S. worker spends $1,092 on coffee each year.", "Starbucks is named for Captain Ahab’s first mate. The founders had considered naming it Pequod's, after Ahab’s ship.", "Chock Full O'Nuts coffee does not contain nuts. It's named for a chain of nut stores the founder converted into coffee shops.", "According to legend, Honore de Balzac drank 50 cups of coffee a day to fuel his writing" ];
+facts = [
+"After coffee beans are decaffeinated, coffee manufacturers sell the caffeine to soft drink makers and pharmaceutical companies.",
+"The average U.S. worker spends $1,092 on coffee each year.",
+"Starbucks is named for Captain Ahab’s first mate. The founders had considered naming it Pequod\'s, after Ahab\’s ship.",
+"Chock Full O\'Nuts coffee does not contain nuts. It\'s named for a chain of nut stores the founder converted into coffee shops.",
+"According to legend, Honore de Balzac drank 50 cups of coffee a day to fuel his writing",
+"Ethiopian shepherds first noticed the effects of caffeine when they saw their goats appearing to become friskky and \"dance\"  after eating coffee berries",
+"Originally, coffee was eaten.",
+"African tribes mixed coffee berries with fat which formed edible energy balls",
+"The rise of Islam contributed greatly to the popularity of coffee. The religion prohibited drinking alcohol, but coffee was sondidered an acceptable drink.",
+"All coffee in the world grows in the bean belt. ",
+"Hawaii is the only state in the US that grows coffee. ",
+"In 1675, the King of England banned coffee houses, claiming they were places where people met to conspire against him. ",
+"70% of the world consumes Arabica coffee, which is mild and aromatic. The remaining 30% drinks Robusta, which is more bitter-tasting but has 50% more caffeine than Arabica. ",
+"Coffee grows on trees. They can grow to be up to 30 feet tall, but are cultivated to be around 10 feet (3 meters) tall for easy-picking. ",
+"The bean is actually a seed inside of a bright red berry. ",
+"Coffee is the second most traded commodity on earth. Oil is the first. ",
+"Coffee berries are picked, dried and stripped down until all that\'s left is a green bean.",
+"Once shipped, the beans are roasted at around 500F. After a few minutes, the bean will \"pop\" and double in size. A frew minutes after that, the bean will \"pop\" once more. The second pop means the bean is done. ",
+"George Wasington invented instant coffee. A belgian man linving Guatemala by the name of George Washington. ",
+"Espresso : |e - spres - oh| Its not a particular type of bean, roast or blend. Espression is just a way that coffee is prepared: shooting pressurized, hot water through finely ground coffee. ",
+"The term \"Americano\" comes from American GIs during WWII. They would order espresso with water to dilute the strong flavor. ",
+"The term \"cup of joe\" comes from American servicemen (GI Joes) in WWII being seen as big coffee drinkers."];
+
 admins = ( 
   {
     username = "chorlick";
@@ -10,7 +33,7 @@ help = "general commands :\nhelp        - receieve this information\nfact       
 creds = ( 
   {
     username = "chris.horlick@fis-cal.com";
-    password = "chris9562";
+    password = "XXXXX";
   } );
 brew = ( 
   {
