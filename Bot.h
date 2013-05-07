@@ -63,6 +63,7 @@ class Bot : public MessageHandler, ConnectionListener, PresenceHandler, MessageS
         bool parseConfigFile();
         void debug(int debug, const char * fmt, ...);
         void writeFreshTime();
+        void reloadConfig();
 
     private : 
         Client * j;
@@ -71,6 +72,7 @@ class Bot : public MessageHandler, ConnectionListener, PresenceHandler, MessageS
         string help;
         string motd;
 	string qotd;
+    string wotd;
         string username;
         string password;
         struct tm brew_time;

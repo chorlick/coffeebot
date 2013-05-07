@@ -63,6 +63,27 @@ void Bot::debug(int debug, const char * fmt, ...) {
 	printf("\n");
 }
 
+void Bot::reloadConfig() {
+
+    vector<string>::iterator facts_it;
+    vector<struct Admin * >::iterator admins_it;
+    vector<struct AdminSession * >::iterator session_it;
+
+    for(facts_it = facts.begin(); facts_it != facts.end(); ++facts_it) {
+        facts.erase(facts_it);
+    }
+   
+   for(session_it = auths.begin(); session_it != auths.end(); ++session_it) {
+        auths.erase(session_it);
+    }
+  
+    for(admins_it = admins.begin(); admins_it != admins.end(); ++admins_it) {
+        admins.erase(admins_it);
+    }   
+
+    parseConfigFile();
+}
+
 Bot::~Bot() {
 	debug(Debug, "Deconstructor called");
 }
@@ -86,15 +107,16 @@ bool Bot::parseConfigFile() {
 		}
 
 		//admin
-		Setting & admins = cfg.lookup("admins");
-		count = admins.getLength();
+		Setting & admins_cfg = cfg.lookup("admins");
+		count = admins_cfg.getLength();
 		for(i = 0; i < count; i++) {
 			struct Admin * t = new Admin;
-			const Setting & admin = admins[i];
+			const Setting & admin = admins_cfg[i];
 			admin.lookupValue("username", t->username);
 			admin.lookupValue("password", t->password);
+            this->admins.push_back(t);
 			debug(Debug, "Admin %d : username %s, password %s", i + 1, 
-					admins[i]["username"].c_str(), admins[i]["password"].c_str());
+					t->username.c_str(), t->password.c_str());
 
 		}
 
@@ -128,7 +150,7 @@ bool Bot::parseConfigFile() {
 		creds[0].lookupValue("password", password);	
 
 		qotd  = cfg.lookup("qotd").c_str();
-
+        wotd = cfg.lookup("wotd").c_str();
 	}catch (const FileIOException &t) {
 		debug(Critical, "Error reading file");
 		throw;
@@ -165,14 +187,14 @@ int Bot::makeTime(struct tm t, char* buffer, int size) {
 		"December"};
 
 	return snprintf(buffer, size, "Last brewed : %s, %s %d %d @ %d:%d.%d  by %s",weekday[t.tm_wday], months[t.tm_mon],
-			t.tm_mday,t.tm_year, t.tm_hour, t.tm_min, t.tm_sec,  brew_user.c_str() );
+			t.tm_mday,t.tm_year - 100 + 2000, t.tm_hour, t.tm_min, t.tm_sec,  brew_user.c_str() );
 
 }
 
 void Bot::writeFreshTime() {
 
 	Config cfg;
-	char buffer[512];
+	string buffer;
 	char line[512];
 	int i;
 	char c;
@@ -180,11 +202,21 @@ void Bot::writeFreshTime() {
 	int offset;
 	FILE* pfile = fopen("config.txt", "r+");
 	i = 0;
-	snprintf(buffer, 512, "%d %d %d %d %d %d %d %s\n",brew_time.tm_wday, brew_time.tm_mon, brew_time.tm_mday, 
-			brew_time.tm_year, brew_time.tm_hour, brew_time.tm_min, brew_time.tm_sec,  brew_user.c_str());
-
+    buffer.resize(512);
+    
+    i = brew_time.tm_year - 100 + 2000;
+	snprintf((char *) buffer.c_str(), 512, "%d %d %d %d %d %d %d",brew_time.tm_wday, brew_time.tm_mon, brew_time.tm_mday, 
+			i, brew_time.tm_hour, brew_time.tm_min, brew_time.tm_sec);
+    
+    debug(Debug, "Brew Year %d", brew_time.tm_year - 100 + 2000);
 	cfg.readFile("./config.txt");
+    Setting & time = cfg.lookup("brew");
+    time[0]["timestamp"] = buffer;
 
+    Setting & user = cfg.lookup("brew");
+    user[0]["user"] = brew_user;
+        
+    cfg.writeFile("./config.txt");
 	return;
 
 }
@@ -227,6 +259,9 @@ void Bot::handleMessage(const Message & stanza, MessageSession * session) {
 		}else if( (stanza.body().length() == 4) && (stanza.body().compare("qotd") == 0)) {
 			debug(Debug, "Got qtod command");
 			session->send(qotd);
+		}else if( (stanza.body().length() == 4) && (stanza.body().compare("wotd") == 0)) {
+            debug(Debug, "Got wotd command");
+            session->send(wotd);
 		}else if( (stanza.body().length() == 5) && (stanza.body().compare("admin") == 0)) {
 			struct AdminSession * admin = new struct AdminSession;
 			admin->handle = stanza.from().username();
@@ -235,7 +270,34 @@ void Bot::handleMessage(const Message & stanza, MessageSession * session) {
 			auths.push_back(admin);
 			return;
 		}else if( (stanza.body().length() == 6) && (stanza.body().compare("logout") == 0)) {
-
+            debug(Debug, "Logout command received");
+            for(  session_it = auths.begin(); session_it != auths.end(); ++ session_it) {
+              session_tmp = * session_it;
+                if( ( strcmp(session_tmp->handle.c_str(), stanza.from().username().c_str()) == 0) && (session_tmp->authed == true)) {
+                        debug(Debug, "Found auth admin object for logout command, admin logged out");
+                        session->send("Admin logged out");
+                        auths.erase(session_it);
+                        return;
+                }
+            }
+            debug(Debug, "User not a logged in admin");
+            session->send("Not currently logged in");
+            return ;
+		}else if( (stanza.body().length() == 6) && (stanza.body().compare("reload") == 0)) {
+            debug(Debug, "Reload command received");
+            for(  session_it = auths.begin(); session_it != auths.end(); ++ session_it) {
+              session_tmp = * session_it;
+                if( ( strcmp(session_tmp->handle.c_str(), stanza.from().username().c_str()) == 0) && (session_tmp->authed == true)) {
+                        debug(Debug, "Reloading config");
+                        session->send("Config reload, users logged out automatically");
+                        auths.erase(session_it);
+                        reloadConfig();
+                        return;
+                }
+            }
+            debug(Debug, "User not a logged in admin");
+            session->send("Command not available");
+            return ;
 		}
 
 
@@ -265,6 +327,7 @@ void Bot::handleMessage(const Message & stanza, MessageSession * session) {
 
 			for(admin_it = admins.begin(); admin_it != admins.end(); ++admin_it) {
 				admin_tmp = * admin_it;
+               
 				if( ( strcmp(admin_tmp->username.c_str(),session_tmp->username.c_str()) == 0) && 
 						(strcmp(admin_tmp->password.c_str() ,session_tmp->password.c_str()) == 0) ) {
 					debug(Notice, "Admin user logged in %s", admin_tmp->username.c_str());

@@ -4,15 +4,16 @@ admins = (
     username = "chorlick";
     password = "1234";
   } );
-qotd = 123;
-help = "general commands :\nhelp        - receieve this information\nfact        - receive a random coffee fact\nadmin       - request admin status\nquote       - receive quote of the day\nmotd        - receive message of the day \nbrew        - get last brew time\nfresh       - update to latest brew time\n \nadmin commands:\nuser-add   - add admin user\nuser-reset  - reset user password\nfact-add    - add fact to cycle\nfact-remove - remove fact from cycle\nreload      - reload the configuration file\n";
+qotd = "We are what we believe we are.\n\t-C. S. Lewis";
+wotd = "logomachy: a dispute about or concerning words.\nBrought to you by Dictionary.com Word of the Day";
+help = "general commands :\nhelp        - receieve this information\nfact        - receive a random coffee fact\nadmin       - request admin status\nquote       - receive quote of the day\nmotd        - receive message of the day \nbrew        - get last brew time\nfresh       - update to latest brew time\n \nadmin commands:\nreload      - reload the configuration file\n";
 creds = ( 
   {
     username = "chris.horlick@fis-cal.com";
-    password = "XXXXXX";
+    password = "chris9562";
   } );
 brew = ( 
   {
-    timestamp = "5 4 3 113 14 47 59";
+    timestamp = "2 4 7 2013 12 7 46";
     user = "chorlick";
   } );
