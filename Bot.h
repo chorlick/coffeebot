@@ -11,12 +11,14 @@
 #include <gloox/chatstatehandler.h>
 #include <gloox/chatstatefilter.h>
 #include <gloox/connectionlistener.h>
+#include <libconfig.h++>
 
 #include <pthread.h>
 #include <string>
 #include <vector>
 using namespace gloox;
 using namespace std;
+using namespace libconfig;
 
 struct Admin {
     string username;
@@ -68,6 +70,7 @@ class Bot : public MessageHandler, ConnectionListener, PresenceHandler, MessageS
         int connections ;
         string help;
         string motd;
+	string qotd;
         string username;
         string password;
         struct tm brew_time;
@@ -77,5 +80,5 @@ class Bot : public MessageHandler, ConnectionListener, PresenceHandler, MessageS
         MessageEventFilter * m_messageEventFilter;
         ChatStateFilter * m_chatStateFilter;
         vector<AdminSession *> auths;
-        char brew_user[32];
+        string brew_user;
 };

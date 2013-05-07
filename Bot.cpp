@@ -12,13 +12,13 @@
 #include <string.h> 
 #include <stdlib.h>
 #include <stdio.h>
+#include <libconfig.h++>
 
 using namespace std;
 using namespace gloox;
-
+using namespace libconfig;
 
 Bot::Bot() {
-
 	srand(time(NULL));
 	connections = 0;
 	parseConfigFile();
@@ -43,9 +43,7 @@ Bot::Bot(const Bot & b) {
 }
 
 void Bot::debug(int debug, const char * fmt, ...) {
-	
 	char buffer[256];
-
 
 	if(debug == Warning) {
 		snprintf(buffer, 256, "[Bot.cpp][warning] - ");
@@ -70,112 +68,78 @@ Bot::~Bot() {
 }
 
 bool Bot::parseConfigFile() {
-	int i;
-	char c;
-	char context[64];
-	char buffer[512];
+	Config cfg;
+	int i;	
+	int count;
+	const char  *buffer;
 	char * pch;
-	char * colon;    
-	int icolon;
-	debug(Notice, "Starting to parse config file");
-	i = 0;
-	memset(buffer, 0, 512);
-	memset(context,0, 64);
-	FILE * pfile = fopen("./config.txt", "r");
-	if(pfile) {
-		while(!feof(pfile)){
-			c = fgetc(pfile);
-			if(c == '\n') {
+	char stamp[512];
+	try {
+		cfg.readFile("./config.txt");
 
-				if( strlen(buffer) == 0) {
-					continue;
-				}            
+		//Facts
+		Setting & facts = cfg.lookup("facts");
+		count = facts.getLength();
+		for(i = 0; i < count; i++ ) {
+			debug(Debug, "%s", facts[i].c_str());
+			this->facts.push_back(facts[i]);
+		}
 
-				if(buffer[0] == '[' && buffer[i - 1] == ']') {
-					snprintf(context, strlen(buffer) - 1, "%s", buffer +1 );
-					debug(Debug, "Found a context %s", context);
-				}else if(strcmp(context, "facts") == 0){
-					facts.push_back(buffer);   
-				}else if(strcmp(context, "motd") == 0) {
-					buffer[i] = c;
-					motd += buffer;
-				}else if(strcmp(context, "help" ) == 0) {
-					buffer[i] = c;
-					help += buffer;
-				}else if(strcmp(context, "admin") == 0 ) {
-					struct Admin  * t = new struct Admin;
-					colon = strstr(buffer, ":");
-					t->username.resize(512);
-					icolon = 0;
-					while(buffer[icolon] != ':') {
-						t->username[icolon] = buffer[icolon];
-						icolon++;
-					}
-					t->username.resize(icolon + 1);
-					t->password.resize(512);
-					icolon++;
-					snprintf( (char *) &t->password[0], 512, "%s", buffer + icolon);
-					admins.push_back(t);
-				}else if(strcmp(context, "creds") == 0 ) {
-					colon = strstr(buffer, ":");
-					username.resize(512);
-					icolon = 0;
-					while(buffer[icolon] != ':') {
-						username[icolon] = buffer[icolon];
-						icolon++;
-					}
-					username.resize(icolon + 1);
-					password.resize(512);
-					icolon++;
-					snprintf( (char *) &password[0], 512, "%s", buffer + icolon);
-
-				}else if(strcmp(context, "brew") == 0 ) {
-					pch = strtok (buffer," ");
-					brew_time.tm_wday = atoi(pch);
-
-					pch = strtok (NULL, " ");
-					brew_time.tm_year = atoi(pch);
-
-					pch = strtok (NULL, " ");
-					brew_time.tm_mon = atoi(pch);
-
-					pch = strtok (NULL, " ");
-					brew_time.tm_mday = atoi(pch);
-
-					pch = strtok (NULL, " ");
-					brew_time.tm_hour = atoi(pch);
-
-					pch = strtok (NULL, " ");
-					brew_time.tm_min = atoi(pch);
-
-					pch = strtok (NULL, " ");
-					brew_time.tm_sec = atoi(pch);
-
-					pch = strtok (NULL, " ");
-					snprintf(brew_user,32, "%s", pch);
-
-					makeTime(brew_time, buffer, 512);
-					debug(Notice, "Read last brew time as %s", buffer);
-				}
-				i = 0;
-				memset(buffer, 0, 512);
-				continue;
-			}else if(c == '[') {
-				debug(Debug, "Parsing context header");
-				memset(context, 0, 64);
-			}
-
-			buffer[i++] = c;
+		//admin
+		Setting & admins = cfg.lookup("admins");
+		count = admins.getLength();
+		for(i = 0; i < count; i++) {
+			struct Admin * t = new Admin;
+			const Setting & admin = admins[i];
+			admin.lookupValue("username", t->username);
+			admin.lookupValue("password", t->password);
+			debug(Debug, "Admin %d : username %s, password %s", i + 1, 
+					admins[i]["username"].c_str(), admins[i]["password"].c_str());
 
 		}
-		debug(Notice, "Successful parse file");
-		fclose(pfile);
-		return true;
-	}else{
-		debug(Warning, "No config file found");
-		return false;
+
+		help = cfg.lookup("help").c_str();
+
+		Setting & brew = cfg.lookup("brew");
+		brew[0].lookupValue("timestamp", buffer);
+		snprintf(stamp, 512, "%s", buffer);
+		brew[0].lookupValue("user", brew_user);
+
+		pch = strtok(stamp, " ");
+		brew_time.tm_wday = atoi(pch);
+		pch = strtok(stamp, " ");
+		brew_time.tm_year = atoi(pch);
+		pch = strtok(stamp, " ");
+		brew_time.tm_mon = atoi(pch);
+		pch = strtok(stamp, " ");
+		brew_time.tm_mday = atoi(pch);
+		pch = strtok(stamp, " ");
+		brew_time.tm_hour = atoi(pch);
+		pch = strtok(stamp, " ");
+		brew_time.tm_min = atoi(pch);
+		pch = strtok(stamp, " ");
+		brew_time.tm_sec = atoi(pch);
+
+		makeTime(brew_time, stamp, 512);
+		debug(Notice, "Read last brew time as %s", stamp);	
+
+		const Setting & creds = cfg.lookup("creds");
+		creds[0].lookupValue("username", username);
+		creds[0].lookupValue("password", password);	
+
+		qotd  = cfg.lookup("qotd").c_str();
+
+	}catch (const FileIOException &t) {
+		debug(Critical, "Error reading file");
+		throw;
+	}catch (const ParseException  &p) {
+		debug(Critical, "Unable to parse config file %s at : %s ~ %s", p.getFile(), p.getLine(), p.getError() );
+		throw;
 	}
+
+	debug(Notice, "Successful parse");
 }
+
 
 
 int Bot::makeTime(struct tm t, char* buffer, int size) {
@@ -201,12 +165,13 @@ int Bot::makeTime(struct tm t, char* buffer, int size) {
 		"December"};
 
 	return snprintf(buffer, size, "Last brewed : %s, %s %d %d @ %d:%d.%d  by %s",weekday[t.tm_wday], months[t.tm_mon],
-			t.tm_mday,t.tm_year, t.tm_hour, t.tm_min, t.tm_sec,  brew_user );
+			t.tm_mday,t.tm_year, t.tm_hour, t.tm_min, t.tm_sec,  brew_user.c_str() );
 
 }
 
 void Bot::writeFreshTime() {
 
+	Config cfg;
 	char buffer[512];
 	char line[512];
 	int i;
@@ -216,23 +181,9 @@ void Bot::writeFreshTime() {
 	FILE* pfile = fopen("config.txt", "r+");
 	i = 0;
 	snprintf(buffer, 512, "%d %d %d %d %d %d %d %s\n",brew_time.tm_wday, brew_time.tm_mon, brew_time.tm_mday, 
-			brew_time.tm_year, brew_time.tm_hour, brew_time.tm_min, brew_time.tm_sec,  brew_user);
+			brew_time.tm_year, brew_time.tm_hour, brew_time.tm_min, brew_time.tm_sec,  brew_user.c_str());
 
-	memset(line, 0,512);
-	if(pfile) {
-		while(!feof(pfile)) {
-			c = fgetc(pfile);
-			line[i++] = c; 
-			if(c == '\n' ) {
-				if(strstr(line, "[brew]")) {
-					fprintf(pfile,"%s", buffer);
-				}
-				memset(line, 0,512);
-				i = 0;
-			}
-		}
-		fclose(pfile);
-	}
+	cfg.readFile("./config.txt");
 
 	return;
 
@@ -269,9 +220,13 @@ void Bot::handleMessage(const Message & stanza, MessageSession * session) {
 			debug(Debug, "Got fresh command");
 			time_t now = time(NULL);
 			memcpy( &brew_time, localtime(&now), sizeof(struct tm));
-			snprintf(brew_user, 32, stanza.from().username().c_str());
+			brew_user.resize(32);
+			snprintf( (char *) brew_user.c_str(), 32, stanza.from().username().c_str());
 			writeFreshTime();
-			//            session->send();
+			session->send("Wrote new time");
+		}else if( (stanza.body().length() == 4) && (stanza.body().compare("qotd") == 0)) {
+			debug(Debug, "Got qtod command");
+			session->send(qotd);
 		}else if( (stanza.body().length() == 5) && (stanza.body().compare("admin") == 0)) {
 			struct AdminSession * admin = new struct AdminSession;
 			admin->handle = stanza.from().username();
@@ -344,35 +299,35 @@ void Bot::onDisconnect(gloox::ConnectionError ce) {
 		debug(Notice, "	A stream error occured. The stream has been closed. Use ClientBase::streamError() to find the reason. ");
 	}else if (ce == ConnStreamClosed) {
 		debug(Notice, "	The stream has been closed (by the server). ");
-        }else if (ce == ConnProxyAuthRequired) {
+	}else if (ce == ConnProxyAuthRequired) {
 		debug(Notice, "	The HTTP proxy requires authentication. ");
-        }else if (ce == ConnProxyAuthFailed) {
+	}else if (ce == ConnProxyAuthFailed) {
 		debug(Notice, "HTTP proxy authentication failed. ");
-        }else if (ce == ConnIoError) {
+	}else if (ce == ConnIoError) {
 		debug(Notice, "	An I/O error occured. ");
-        }else if (ce == ConnParseError) {
+	}else if (ce == ConnParseError) {
 		debug(Notice, "An XML parse error occurred. ");
-        }else if (ce == ConnConnectionRefused) {
+	}else if (ce == ConnConnectionRefused) {
 		debug(Notice, "The connection was refused by the server (on the socket level). ");
-        }else if (ce == ConnDnsError) {
+	}else if (ce == ConnDnsError) {
 		debug(Notice, "	Resolving the server's hostname failed. ");
-        }else if (ce == ConnOutOfMemory) {
+	}else if (ce == ConnOutOfMemory) {
 		debug(Notice, "Out of memory. Uhoh.");
-        }else if (ce == ConnNoSupportedAuth) {
+	}else if (ce == ConnNoSupportedAuth) {
 		debug(Notice, "The auth mechanisms the server offers are not supported or the server offered no auth mechanisms at all. ");
-        }else if (ce == ConnTlsFailed) {
+	}else if (ce == ConnTlsFailed) {
 		debug(Notice, "The server's certificate could not be verified or the TLS handshake did not complete successfully. ");
-        }else if (ce == ConnCompressionFailed) {
+	}else if (ce == ConnCompressionFailed) {
 		debug(Notice, "	Negotiating/initializing compression failed. ");
-        }else if (ce == ConnAuthenticationFailed) {
+	}else if (ce == ConnAuthenticationFailed) {
 		debug(Notice, "	Authentication failed. Username/password wrong or account does not exist. Use ClientBase::authError() to find the reason. ");
-        }else if (ce == ConnUserDisconnected) {
+	}else if (ce == ConnUserDisconnected) {
 		debug(Notice, "The user (or higher-level protocol) requested a disconnect. ");
-        }else if (ce == ConnNotConnected) {
+	}else if (ce == ConnNotConnected) {
 		debug(Notice, "	There is no active connection. ");
 	}
 
-	
+
 }
 bool Bot::onTLSConnect(const gloox::CertInfo & info) {
 	time_t from( info.date_from );

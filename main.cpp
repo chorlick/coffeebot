@@ -10,8 +10,8 @@ void sig_handler(int i);
 
 int main(int argc, char * argv[]) {
 	
-	signal(SIGKILL, sig_handler);
-	signal(SIGINT, sig_handler);
+	//signal(SIGKILL, sig_handler);
+	//signal(SIGINT, sig_handler);
 	cout << "[main.cpp][notice] Starting coffeebot .1 " << endl;
 	Bot  b;
 	return 0;
